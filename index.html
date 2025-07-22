@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn:hover {
+            background: #f1f5f9;
+            color: #3b82f6;
+        }
+
+        .nav-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        /* Main Content */
+        .main {
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .view-header h2 {
+            font-size: 1.8rem;
+            color: #1e293b;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 1.5rem 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex: 1;
+            min-width: 12rem;
+            overflow: hidden;
+        }
+
+        .stat-value {
+            font-size: clamp(1rem, 4vw, 2rem);
+            font-weight: 700;
+            color: #3b82f6;
+            display: block;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Files Grid */
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .file-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .file-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .file-number {
+            background: #3b82f6;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .file-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-mobile {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .file-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-detail {
+            text-align: center;
+        }
+
+        .file-detail-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .file-detail-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-success {
+            background: #059669;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Form */
+        .form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group small {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        /* File Details */
+        .back-btn {
+            background: #f1f5f9;
+            color: #64748b;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .file-details {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .file-info-card {
+            padding: 2rem;
+        }
+
+        .file-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .transactions-section {
+            background: #f8fafc;
+            padding: 2rem;
+        }
+
+        .transactions-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+
+        .transactions-table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .scroll-hint {
+            background: #f8fafc;
+            color: #64748b;
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 37.5rem;
+        }
+
+        .transactions-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .transactions-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .transactions-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .transaction-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .transaction-edit-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s ease;
+        }
+
+        .transaction-edit-btn:hover {
+            background: #2563eb;
+        }
+
+        /* Status Colors */
+        .status-received {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .status-bounce {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        .status-active {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .status-closed {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .status-delayed {
+            color: #f59e0b;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            color: #8b5cf6;
+            font-weight: 500;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #f1f5f9;
+        }
+
+        .date-navigation {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .date-nav-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .date-nav-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .date-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+
+        .toast {
+            background: white;
+            color: #1e293b;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 0.5rem;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            border-left: 4px solid #059669;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+
+            .header .container {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 0.75rem;
+            }
+
+            .nav {
+                width: 100%;
+                justify-content: center;
+                gap: 0.25rem;
+            }
+
+            .nav-btn {
+                flex: 1;
+                justify-content: center;
+                font-size: 0.8rem;
+                padding: 0.5rem 0.75rem;
+                min-height: 2.75rem;
+            }
+
+            .main {
+                padding: 1rem 0;
+            }
+
+            .view-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .view-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .stats {
+                flex-direction: row;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+            }
+
+            .stats .stat-item {
+                flex: 1;
+                min-width: 8rem;
+            }
+
+            .stat-item {
+                min-width: auto;
+            }
+
+            .files-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .file-stats {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .file-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .file-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .transactions-table {
+                font-size: 0.75rem;
+                min-width: 31.25rem;
+            }
+
+            .transactions-table th,
+            .transactions-table td {
+                padding: 0.5rem 0.25rem;
+                white-space: nowrap;
+                min-width: 5rem;
+            }
+
+            .transactions-table-container {
+                margin: 0 -0.5rem;
+                border-radius: 6px;
+            }
+
+            .scroll-hint {
+                display: block;
+            }
+
+            .modal-content {
+                padding: 1rem;
+                margin: 0.5rem;
+                max-width: calc(100vw - 1rem);
+                max-height: calc(100vh - 1rem);
+            }
+
+            .toast-container {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+
+            .toast {
+                max-width: none;
+                font-size: 0.9rem;
+            }
+
+            .date-navigation {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .date-navigation input[type="date"] {
+                order: -1;
+                width: 100%;
+            }
+
+            .date-nav-btn {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .transaction-actions {
+                gap: 0.25rem;
+            }
+
+            .transaction-edit-btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.25rem;
+            }
+
+            .main {
+                padding: 0.75rem 0;
+            }
+
+            .file-card,
+            .file-info-card,
+            .form,
+            .transactions-section {
+                padding: 1rem;
+            }
+
+            .nav-btn {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.6rem;
+            }
+
+            .view-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .stats {
+                gap: 0.5rem;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .stats .stat-item {
+                flex: 1;
+                min-width: 6rem;
+            }
+
+            .stat-item {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: clamp(0.9rem, 3.5vw, 1.5rem);
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                hyphens: auto;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+
+            .transactions-table {
+                font-size: 0.7rem;
+                min-width: 28.125rem;
+            }
+
+            .transactions-table th,
+            .transactions-table td {
+                padding: 0.4rem 0.2rem;
+                min-width: 4.375rem;
+            }
+
+            .transactions-table-container {
+                margin: 0 -0.25rem;
+                border-radius: 4px;
+            }
+
+            .modal-content {
+                padding: 0.75rem;
+                margin: 0.25rem;
+            }
+
+            .form-group label {
+                font-size: 0.9rem;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 16px;
+                padding: 0.75rem;
+            }
+
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+                min-height: 2.75rem;
+            }
+
+            .toast {
+                font-size: 0.8rem;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">Loan Tracker</div>
+            <nav class="nav">
+                <button class="nav-btn active" data-view="active">
+                    <i class="fas fa-list"></i>
+                    Active Files
+                </button>
+                <button class="nav-btn" data-view="history">
+                    <i class="fas fa-history"></i>
+                    History
+                </button>
+                <button class="nav-btn" data-view="create-file">
+                    <i class="fas fa-plus"></i>
+                    Create File
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Active Files View -->
+            <div id="active-files-view" class="view active">
+                <div class="view-header">
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="active-count">0</span>
+                            <span class="stat-label">Active Files</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="total-pending">₹0</span>
+                            <span class="stat-label">Total Pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="files-grid" id="active-files-grid">
+                    <!-- Files will be populated here -->
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="history-view" class="view">
+                <div class="view-header">
+                    <h2>Closed Files</h2>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="closed-count">0</span>
+                            <span class="stat-label">Closed Files</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="files-grid" id="history-files-grid">
+                    <!-- Closed files will be populated here -->
+                </div>
+            </div>
+
+            <!-- Create File View -->
+            <div id="create-file-view" class="view">
+                <div class="view-header">
+                    <h2>Create New File</h2>
+                </div>
+                <form id="create-file-form" class="form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="personFullName">Person Full Name *</label>
+                            <input type="text" id="personFullName" name="personFullName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="personMobile">Person Mobile *</label>
+                            <input type="tel" id="personMobile" name="personMobile" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="referenceMobile">Reference Mobile *</label>
+                            <input type="tel" id="referenceMobile" name="referenceMobile" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address">Address *</label>
+                            <textarea id="address" name="address" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="businessName">Business Name *</label>
+                            <input type="text" id="businessName" name="businessName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="businessAddress">Business Address *</label>
+                            <textarea id="businessAddress" name="businessAddress" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="principalAmount">Principal Amount (₹) *</label>
+                            <input type="number" id="principalAmount" name="principalAmount" min="1" max="500000"
+                                required>
+                            <small>Maximum ₹500,000</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="installment">Daily Installment (₹) *</label>
+                            <input type="number" id="installment" name="installment" min="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fileStartDate">File Start Date *</label>
+                            <input type="date" id="fileStartDate" name="fileStartDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fileEndDate">File End Date *</label>
+                            <input type="date" id="fileEndDate" name="fileEndDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="showView('active')">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Create File
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- File Details View -->
+            <div id="file-details-view" class="view">
+                <div class="view-header">
+                    <button class="btn btn-secondary back-btn" onclick="showView('active')">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <h2 id="file-details-title">File Details</h2>
+                </div>
+
+                <div class="file-details">
+                    <div class="file-info-card">
+                        <div class="file-header">
+                            <h3 id="file-person-name">Person Name</h3>
+                            <span class="file-number" id="file-number">#1</span>
+                        </div>
+
+                        <div class="file-stats">
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-principal">₹0</span>
+                                <span class="stat-label">Principal Amount</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-installment">₹0</span>
+                                <span class="stat-label">Daily Installment</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-received">₹0</span>
+                                <span class="stat-label">Total Received</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-pending">₹0</span>
+                                <span class="stat-label">Pending Amount</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-bounces">0</span>
+                                <span class="stat-label">Bounces</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-transactions">0</span>
+                                <span class="stat-label">Transactions</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-start-date">-</span>
+                                <span class="stat-label">Start Date</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-details-end-date">-</span>
+                                <span class="stat-label">End Date</span>
+                            </div>
+                        </div>
+
+                        <div class="file-actions">
+                            <button class="btn btn-primary" id="mark-payment-btn">
+                                <i class="fas fa-plus"></i>
+                                Mark Payment Received
+                            </button>
+                            <button class="btn btn-success" id="close-file-btn">
+                                <i class="fas fa-check"></i>
+                                Close File
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="transactions-section">
+                        <h3>Transaction History</h3>
+                        <div class="transactions-table-container">
+                            <div class="scroll-hint">← Scroll horizontally to see all columns →</div>
+                            <table class="transactions-table" id="transactions-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Mode</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-tbody">
+                                    <!-- Transactions will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Payment Modal -->
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Mark Payment Received</h3>
+                <button class="modal-close" onclick="closePaymentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="payment-form">
+                <div class="date-navigation">
+                    <button type="button" class="date-nav-btn" onclick="changePaymentDate('prev')">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <input type="date" id="payment-date" name="paymentDate" required>
+                    <button type="button" class="date-nav-btn" onclick="changePaymentDate('next')">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-amount">Amount (₹) *</label>
+                    <input type="number" id="payment-amount" name="paymentAmount" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-mode">Payment Mode *</label>
+                    <select id="payment-mode" name="paymentMode" required>
+                        <option value="CASH">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="BANK_TRANSFER">Bank Transfer</option>
+                        <option value="CHEQUE">Cheque</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Mark Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Transaction Modal -->
+    <div id="edit-transaction-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Transaction</h3>
+                <button class="modal-close" onclick="closeEditTransactionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="edit-transaction-form">
+                <div class="date-navigation">
+                    <button type="button" class="date-nav-btn" onclick="changeEditTransactionDate('prev')">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <input type="date" id="edit-transaction-date" name="editTransactionDate" required>
+                    <button type="button" class="date-nav-btn" onclick="changeEditTransactionDate('next')">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-transaction-amount">Amount (₹) *</label>
+                    <input type="number" id="edit-transaction-amount" name="editTransactionAmount" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-transaction-mode">Payment Mode *</label>
+                    <select id="edit-transaction-mode" name="editTransactionMode" required>
+                        <option value="CASH">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="BANK_TRANSFER">Bank Transfer</option>
+                        <option value="CHEQUE">Cheque</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger" onclick="deleteTransaction()">
+                        <i class="fas fa-trash"></i>
+                        Delete Transaction
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditTransactionModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Update Transaction
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

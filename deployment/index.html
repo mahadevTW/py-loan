@@ -1,0 +1,2099 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Loan Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn:hover {
+            background: #f1f5f9;
+            color: #3b82f6;
+        }
+
+        .nav-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        /* Main Content */
+        .main {
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .view-header h2 {
+            font-size: 1.8rem;
+            color: #1e293b;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 1.5rem 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex: 1;
+            min-width: 12rem;
+            overflow: hidden;
+        }
+
+        .stat-value {
+            font-size: clamp(1rem, 4vw, 2rem);
+            font-weight: 700;
+            color: #3b82f6;
+            display: block;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Files Grid */
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .file-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .file-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .file-number {
+            background: #3b82f6;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .file-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-mobile {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .file-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-detail {
+            text-align: center;
+        }
+
+        .file-detail-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .file-detail-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-success {
+            background: #059669;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Form */
+        .form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group small {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        /* File Details */
+        .back-btn {
+            background: #f1f5f9;
+            color: #64748b;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .file-details {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .file-info-card {
+            padding: 2rem;
+        }
+
+        .file-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .transactions-section {
+            background: #f8fafc;
+            padding: 2rem;
+        }
+
+        .transactions-section h3 {
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+
+        .transactions-table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .scroll-hint {
+            background: #f8fafc;
+            color: #64748b;
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 37.5rem;
+        }
+
+        .transactions-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .transactions-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .transactions-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .transaction-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .transaction-edit-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s ease;
+        }
+
+        .transaction-edit-btn:hover {
+            background: #2563eb;
+        }
+
+        /* Status Colors */
+        .status-received {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .status-bounce {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        .status-active {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .status-closed {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .status-delayed {
+            color: #f59e0b;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            color: #8b5cf6;
+            font-weight: 500;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #f1f5f9;
+        }
+
+        .date-navigation {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .date-nav-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .date-nav-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .date-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+
+        .toast {
+            background: white;
+            color: #1e293b;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 0.5rem;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            border-left: 4px solid #059669;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+
+            .header .container {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 0.75rem;
+            }
+
+            .nav {
+                width: 100%;
+                justify-content: center;
+                gap: 0.25rem;
+            }
+
+            .nav-btn {
+                flex: 1;
+                justify-content: center;
+                font-size: 0.8rem;
+                padding: 0.5rem 0.75rem;
+                min-height: 2.75rem;
+            }
+
+            .main {
+                padding: 1rem 0;
+            }
+
+            .view-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .view-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .stats {
+                flex-direction: row;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+            }
+
+            .stats .stat-item {
+                flex: 1;
+                min-width: 8rem;
+            }
+
+            .stat-item {
+                min-width: auto;
+            }
+
+            .files-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .file-stats {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .file-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .file-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .transactions-table {
+                font-size: 0.75rem;
+                min-width: 31.25rem;
+            }
+
+            .transactions-table th,
+            .transactions-table td {
+                padding: 0.5rem 0.25rem;
+                white-space: nowrap;
+                min-width: 5rem;
+            }
+
+            .transactions-table-container {
+                margin: 0 -0.5rem;
+                border-radius: 6px;
+            }
+
+            .scroll-hint {
+                display: block;
+            }
+
+            .modal-content {
+                padding: 1rem;
+                margin: 0.5rem;
+                max-width: calc(100vw - 1rem);
+                max-height: calc(100vh - 1rem);
+            }
+
+            .toast-container {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+
+            .toast {
+                max-width: none;
+                font-size: 0.9rem;
+            }
+
+            .date-navigation {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .date-navigation input[type="date"] {
+                order: -1;
+                width: 100%;
+            }
+
+            .date-nav-btn {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .transaction-actions {
+                gap: 0.25rem;
+            }
+
+            .transaction-edit-btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.25rem;
+            }
+
+            .main {
+                padding: 0.75rem 0;
+            }
+
+            .file-card,
+            .file-info-card,
+            .form,
+            .transactions-section {
+                padding: 1rem;
+            }
+
+            .nav-btn {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.6rem;
+            }
+
+            .view-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .stats {
+                gap: 0.5rem;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .stats .stat-item {
+                flex: 1;
+                min-width: 6rem;
+            }
+
+            .stat-item {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: clamp(0.9rem, 3.5vw, 1.5rem);
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                hyphens: auto;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+
+            .transactions-table {
+                font-size: 0.7rem;
+                min-width: 28.125rem;
+            }
+
+            .transactions-table th,
+            .transactions-table td {
+                padding: 0.4rem 0.2rem;
+                min-width: 4.375rem;
+            }
+
+            .transactions-table-container {
+                margin: 0 -0.25rem;
+                border-radius: 4px;
+            }
+
+            .modal-content {
+                padding: 0.75rem;
+                margin: 0.25rem;
+            }
+
+            .form-group label {
+                font-size: 0.9rem;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 16px;
+                padding: 0.75rem;
+            }
+
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+                min-height: 2.75rem;
+            }
+
+            .toast {
+                font-size: 0.8rem;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">Loan Tracker</div>
+            <nav class="nav">
+                <button class="nav-btn active" data-view="active">
+                    <i class="fas fa-list"></i>
+                    Active Files
+                </button>
+                <button class="nav-btn" data-view="history">
+                    <i class="fas fa-history"></i>
+                    History
+                </button>
+                <button class="nav-btn" data-view="create-file">
+                    <i class="fas fa-plus"></i>
+                    Create File
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Active Files View -->
+            <div id="active-files-view" class="view active">
+                <div class="view-header">
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="active-count">0</span>
+                            <span class="stat-label">Active Files</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="total-pending">₹0</span>
+                            <span class="stat-label">Total Pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="files-grid" id="active-files-grid">
+                    <!-- Files will be populated here -->
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="history-view" class="view">
+                <div class="view-header">
+                    <h2>Closed Files</h2>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="closed-count">0</span>
+                            <span class="stat-label">Closed Files</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="files-grid" id="history-files-grid">
+                    <!-- Closed files will be populated here -->
+                </div>
+            </div>
+
+            <!-- Create File View -->
+            <div id="create-file-view" class="view">
+                <div class="view-header">
+                    <h2>Create New File</h2>
+                </div>
+                <form id="create-file-form" class="form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="personFullName">Person Full Name *</label>
+                            <input type="text" id="personFullName" name="personFullName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="personMobile">Person Mobile *</label>
+                            <input type="tel" id="personMobile" name="personMobile" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="referenceMobile">Reference Mobile *</label>
+                            <input type="tel" id="referenceMobile" name="referenceMobile" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address">Address *</label>
+                            <textarea id="address" name="address" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="businessName">Business Name *</label>
+                            <input type="text" id="businessName" name="businessName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="businessAddress">Business Address *</label>
+                            <textarea id="businessAddress" name="businessAddress" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="principalAmount">Principal Amount (₹) *</label>
+                            <input type="number" id="principalAmount" name="principalAmount" min="1" max="500000"
+                                required>
+                            <small>Maximum ₹500,000</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="installment">Daily Installment (₹) *</label>
+                            <input type="number" id="installment" name="installment" min="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fileStartDate">File Start Date *</label>
+                            <input type="date" id="fileStartDate" name="fileStartDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fileEndDate">File End Date *</label>
+                            <input type="date" id="fileEndDate" name="fileEndDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="showView('active')">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Create File
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- File Details View -->
+            <div id="file-details-view" class="view">
+                <div class="view-header">
+                    <button class="btn btn-secondary back-btn" onclick="showView('active')">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <h2 id="file-details-title">File Details</h2>
+                </div>
+
+                <div class="file-details">
+                    <div class="file-info-card">
+                        <div class="file-header">
+                            <h3 id="file-person-name">Person Name</h3>
+                            <span class="file-number" id="file-number">#1</span>
+                        </div>
+
+                        <div class="file-stats">
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-principal">₹0</span>
+                                <span class="stat-label">Principal Amount</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-installment">₹0</span>
+                                <span class="stat-label">Daily Installment</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-received">₹0</span>
+                                <span class="stat-label">Total Received</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-pending">₹0</span>
+                                <span class="stat-label">Pending Amount</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-bounces">0</span>
+                                <span class="stat-label">Bounces</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-transactions">0</span>
+                                <span class="stat-label">Transactions</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-start-date">-</span>
+                                <span class="stat-label">Start Date</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="file-details-end-date">-</span>
+                                <span class="stat-label">End Date</span>
+                            </div>
+                        </div>
+
+                        <div class="file-actions">
+                            <button class="btn btn-primary" id="mark-payment-btn">
+                                <i class="fas fa-plus"></i>
+                                Mark Payment Received
+                            </button>
+                            <button class="btn btn-success" id="close-file-btn">
+                                <i class="fas fa-check"></i>
+                                Close File
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="transactions-section">
+                        <h3>Transaction History</h3>
+                        <div class="transactions-table-container">
+                            <div class="scroll-hint">← Scroll horizontally to see all columns →</div>
+                            <table class="transactions-table" id="transactions-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Mode</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-tbody">
+                                    <!-- Transactions will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Payment Modal -->
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Mark Payment Received</h3>
+                <button class="modal-close" onclick="closePaymentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="payment-form">
+                <div class="date-navigation">
+                    <button type="button" class="date-nav-btn" onclick="changePaymentDate('prev')">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <input type="date" id="payment-date" name="paymentDate" required>
+                    <button type="button" class="date-nav-btn" onclick="changePaymentDate('next')">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-amount">Amount (₹) *</label>
+                    <input type="number" id="payment-amount" name="paymentAmount" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-mode">Payment Mode *</label>
+                    <select id="payment-mode" name="paymentMode" required>
+                        <option value="CASH">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="BANK_TRANSFER">Bank Transfer</option>
+                        <option value="CHEQUE">Cheque</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Mark Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Transaction Modal -->
+    <div id="edit-transaction-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Transaction</h3>
+                <button class="modal-close" onclick="closeEditTransactionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="edit-transaction-form">
+                <div class="date-navigation">
+                    <button type="button" class="date-nav-btn" onclick="changeEditTransactionDate('prev')">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <input type="date" id="edit-transaction-date" name="editTransactionDate" required>
+                    <button type="button" class="date-nav-btn" onclick="changeEditTransactionDate('next')">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-transaction-amount">Amount (₹) *</label>
+                    <input type="number" id="edit-transaction-amount" name="editTransactionAmount" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-transaction-mode">Payment Mode *</label>
+                    <select id="edit-transaction-mode" name="editTransactionMode" required>
+                        <option value="CASH">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="BANK_TRANSFER">Bank Transfer</option>
+                        <option value="CHEQUE">Cheque</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger" onclick="deleteTransaction()">
+                        <i class="fas fa-trash"></i>
+                        Delete Transaction
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditTransactionModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Update Transaction
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+    <script>
+        // Configuration
+        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4N5sbuqP2EHgBVhi5yFbSUgXSrfz_85WXCFmU0NlJfpulggio565afeSM1Z9ZWX2drQ/exec'; // Replace with your deployment URL
+        // const ENV = 'production';
+        const ENV = 'development';
+        // Global variables for Google Sheets data
+        let files = [];
+        let transactions = [];
+
+        // Global variables
+        let currentView = 'active';
+        let currentFile = null;
+        let currentTransaction = null;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Set up navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const view = this.getAttribute('data-view');
+                    console.log('Navigation clicked:', view);
+                    console.log('Button clicked:', this.textContent);
+                    showView(view);
+                });
+            });
+
+            // Debug: Check if buttons exist
+            console.log('Navigation buttons found:', document.querySelectorAll('.nav-btn').length);
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                console.log('Button:', btn.textContent, 'data-view:', btn.getAttribute('data-view'));
+            });
+
+            // Set up form submissions
+            const createFileForm = document.getElementById('create-file-form');
+            const paymentForm = document.getElementById('payment-form');
+            const editTransactionForm = document.getElementById('edit-transaction-form');
+
+            if (createFileForm) {
+                console.log('Create file form found, adding event listener');
+                createFileForm.addEventListener('submit', handleCreateFile);
+            } else {
+                console.error('Create file form not found!');
+            }
+
+            if (paymentForm) {
+                paymentForm.addEventListener('submit', handlePayment);
+            }
+
+            if (editTransactionForm) {
+                editTransactionForm.addEventListener('submit', handleEditTransaction);
+            }
+
+            // Set up payment modal
+            const markPaymentBtn = document.getElementById('mark-payment-btn');
+            if (markPaymentBtn) {
+                markPaymentBtn.addEventListener('click', openPaymentModal);
+            }
+
+            // Set up close file button
+            const closeFileBtn = document.getElementById('close-file-btn');
+            if (closeFileBtn) {
+                closeFileBtn.addEventListener('click', closeFile);
+            }
+
+            // Set default dates for file start and end dates
+            const today = new Date();
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const fileStartDateEl = document.getElementById('fileStartDate');
+            if (fileStartDateEl) {
+                // Allow past dates for start date (no min restriction)
+                fileStartDateEl.value = today.toISOString().split('T')[0];
+            }
+
+            const fileEndDateEl = document.getElementById('fileEndDate');
+            if (fileEndDateEl) {
+                fileEndDateEl.min = tomorrow.toISOString().split('T')[0];
+                fileEndDateEl.value = tomorrow.toISOString().split('T')[0];
+            }
+
+            // Load initial data after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                loadFiles();
+            }, 100);
+        }
+
+        // View management
+        function showView(viewName) {
+            console.log('showView called with:', viewName);
+
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+                console.log('Hiding view:', view.id);
+            });
+
+            // Show selected view
+            let targetView;
+            if (viewName === 'active') {
+                targetView = document.getElementById('active-files-view');
+            } else if (viewName === 'history') {
+                targetView = document.getElementById('history-view');
+            } else {
+                targetView = document.getElementById(`${viewName}-view`);
+            }
+
+            console.log('Target view found:', targetView ? 'YES' : 'NO');
+            if (targetView) {
+                targetView.classList.add('active');
+                console.log('Added active class to:', targetView.id);
+                console.log('View classes now:', targetView.className);
+            }
+
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const activeNavBtn = document.querySelector(`[data-view="${viewName}"]`);
+            if (activeNavBtn) {
+                activeNavBtn.classList.add('active');
+            }
+
+            currentView = viewName;
+
+            // Only load files for views that need them
+            if (viewName === 'active' || viewName === 'history') {
+                loadFiles();
+            }
+        }
+
+        // Load and display files
+        // Load and display files from Google Sheets
+        async function loadFiles() {
+            try {
+                console.log('Loading files from Google Sheets...');
+
+                // Fetch files from Google Sheets API
+                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getFiles`);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                files = data;
+
+                const activeFiles = files.filter(file => file.status === 'ACTIVE');
+                const closedFiles = files.filter(file => file.status === 'CLOSED');
+
+                console.log('Active files:', activeFiles.length);
+                console.log('Closed files:', closedFiles.length);
+
+                // Update stats
+                const activeCountEl = document.getElementById('active-count');
+                const closedCountEl = document.getElementById('closed-count');
+                const totalPendingEl = document.getElementById('total-pending');
+
+                if (activeCountEl) {
+                    activeCountEl.textContent = activeFiles.length;
+                }
+
+                if (closedCountEl) {
+                    closedCountEl.textContent = closedFiles.length;
+                }
+
+                const totalPending = activeFiles.reduce((sum, file) => {
+                    return sum + (file.principalAmount - file.totalReceived);
+                }, 0);
+
+                if (totalPendingEl) {
+                    totalPendingEl.textContent = `₹${totalPending.toLocaleString()}`;
+                }
+
+                // Render files based on current view
+                const filesGrid = currentView === 'history' ?
+                    document.getElementById('history-files-grid') :
+                    document.getElementById('active-files-grid');
+
+                if (filesGrid) {
+                    filesGrid.innerHTML = '';
+
+                    const filesToShow = currentView === 'history' ? closedFiles : activeFiles;
+
+                    filesToShow.forEach(file => {
+                        const fileCard = createFileCard(file);
+                        filesGrid.appendChild(fileCard);
+                    });
+                }
+
+
+
+            } catch (error) {
+                console.error('Error loading files:', error);
+                showToast('Error loading files: ' + error.message, 'error');
+            }
+        }
+
+        // Create file card element
+        function createFileCard(file) {
+            const card = document.createElement('div');
+            card.className = 'file-card';
+
+            const pendingAmount = file.principalAmount - file.totalReceived;
+
+            card.innerHTML = `
+        <div class="file-header">
+            <div>
+                <div class="file-name">${file.personName}</div>
+                <div class="file-mobile">${file.personMobile}</div>
+            </div>
+            <span class="file-number">#${file.id}</span>
+        </div>
+        
+        <div class="file-details">
+            <div class="file-detail">
+                <div class="file-detail-label">Principal</div>
+                <div class="file-detail-value">₹${file.principalAmount.toLocaleString()}</div>
+            </div>
+            <div class="file-detail">
+                <div class="file-detail-label">Daily</div>
+                <div class="file-detail-value">₹${file.installment.toLocaleString()}</div>
+            </div>
+            <div class="file-detail">
+                <div class="file-detail-label">Received</div>
+                <div class="file-detail-value">₹${file.totalReceived.toLocaleString()}</div>
+            </div>
+            <div class="file-detail">
+                <div class="file-detail-label">Pending</div>
+                <div class="file-detail-value">₹${pendingAmount.toLocaleString()}</div>
+            </div>
+        </div>
+        
+        <div class="file-actions">
+            <button class="btn btn-primary view-details-btn" data-file-id="${file.id}">
+                <i class="fas fa-eye"></i>
+                View Details
+            </button>
+            ${file.status === 'ACTIVE' ? `
+                <button class="btn btn-success mark-payment-btn" data-file-id="${file.id}">
+                    <i class="fas fa-plus"></i>
+                    Mark Payment
+                </button>
+            ` : ''}
+        </div>
+    `;
+
+            // Add event listeners
+            const viewDetailsBtn = card.querySelector('.view-details-btn');
+            if (viewDetailsBtn) {
+                viewDetailsBtn.addEventListener('click', function () {
+                    const fileId = parseInt(this.getAttribute('data-file-id'));
+                    viewFile(fileId);
+                });
+            }
+
+            const markPaymentBtn = card.querySelector('.mark-payment-btn');
+            if (markPaymentBtn) {
+                markPaymentBtn.addEventListener('click', function () {
+                    const fileId = parseInt(this.getAttribute('data-file-id'));
+                    openPaymentModal(fileId);
+                });
+            }
+
+            return card;
+        }
+
+        // View file details
+        function viewFile(fileId) {
+            const file = files.find(f => f.id === fileId);
+            if (!file) return;
+
+            currentFile = file;
+
+            // Populate file details
+            const elements = {
+                'file-details-title': file.personName,
+                'file-person-name': file.personName,
+                'file-number': `#${file.id}`,
+                'file-principal': `₹${file.principalAmount.toLocaleString()}`,
+                'file-installment': `₹${file.installment.toLocaleString()}`,
+                'file-received': `₹${file.totalReceived.toLocaleString()}`,
+                'file-pending': `₹${(file.principalAmount - file.totalReceived).toLocaleString()}`,
+                'file-bounces': file.bounces,
+                'file-transactions': file.transactions,
+                'file-start-date': formatDate(file.fileStartDate),
+                'file-details-end-date': formatDate(file.fileEndDate)
+            };
+
+            Object.keys(elements).forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = elements[id];
+                }
+            });
+
+            // Show/hide close file button
+            const closeBtn = document.getElementById('close-file-btn');
+            if (closeBtn) {
+                if (file.status === 'ACTIVE') {
+                    closeBtn.style.display = 'inline-flex';
+                } else {
+                    closeBtn.style.display = 'none';
+                }
+            }
+
+            // Load transactions
+            loadTransactions(fileId);
+
+            // Show file details view
+            showView('file-details');
+        }
+
+        // Load transactions for a file from Google Sheets
+        async function loadTransactions(fileId) {
+            const tbody = document.getElementById('transactions-tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            try {
+                // Fetch transactions from Google Sheets API
+                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getTransactions&fileNumber=${fileId}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                const transactions = data || [];
+                const file = files.find(f => f.id === fileId);
+
+                if (!file) return;
+
+                // Get date range
+                const startDate = new Date(file.fileStartDate);
+                const endDate = file.status === 'CLOSED' ? new Date(file.fileEndDate) : new Date();
+                const today = new Date();
+
+                // Create date range for transactions
+                const dateRange = [];
+                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    dateRange.push(new Date(d));
+                }
+
+                // Sort transactions by date (newest first)
+                const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                // Display transactions in reverse chronological order
+                sortedTransactions.forEach(transaction => {
+                    const row = createTransactionRow(transaction, file);
+                    tbody.appendChild(row);
+                });
+
+                // Add bounce entries for missing dates
+                dateRange.forEach(date => {
+                    const dateStr = formatDate(date);
+                    const hasTransaction = transactions.some(t => t.date === dateStr);
+
+                    if (!hasTransaction) {
+                        const isPastDate = date <= today;
+                        const status = isPastDate ? 'BOUNCE' : 'PENDING';
+                        const statusClass = isPastDate ? 'status-bounce' : 'status-pending';
+
+                        const bounceRow = document.createElement('tr');
+                        bounceRow.innerHTML = `
+                <td>${dateStr}</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="${statusClass}">${status}</td>
+                <td>-</td>
+            `;
+                        tbody.appendChild(bounceRow);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                showToast('Error loading transactions: ' + error.message, 'error');
+            }
+        }
+
+        // Create transaction row
+        function createTransactionRow(transaction, file) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+        <td>${formatDate(transaction.date)}</td>
+        <td>₹${transaction.amount.toLocaleString()}</td>
+        <td>${transaction.mode}</td>
+        <td class="status-received">${transaction.status}</td>
+        <td>
+            <div class="transaction-actions">
+                <button class="transaction-edit-btn" onclick="editTransaction(${transaction.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </td>
+    `;
+            return row;
+        }
+
+        // Payment modal functions
+        function openPaymentModal(fileId = null) {
+            if (fileId) {
+                currentFile = files.find(f => f.id === fileId);
+            }
+
+            if (!currentFile || currentFile.status !== 'ACTIVE') return;
+
+            const paymentDateEl = document.getElementById('payment-date');
+            const paymentAmountEl = document.getElementById('payment-amount');
+            const paymentModalEl = document.getElementById('payment-modal');
+
+            if (!paymentDateEl || !paymentAmountEl || !paymentModalEl) return;
+
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            paymentDateEl.value = today;
+
+            // Set max date to today and min date to file start date
+            paymentDateEl.max = today;
+            paymentDateEl.min = currentFile.fileStartDate;
+
+            // Set default amount to daily installment
+            paymentAmountEl.value = currentFile.installment;
+
+            // Update date navigation buttons
+            updateDateNavigationButtons();
+
+            // Show modal
+            paymentModalEl.classList.add('active');
+        }
+
+        function closePaymentModal() {
+            const paymentModalEl = document.getElementById('payment-modal');
+            const paymentFormEl = document.getElementById('payment-form');
+
+            if (paymentModalEl) {
+                paymentModalEl.classList.remove('active');
+            }
+
+            if (paymentFormEl) {
+                paymentFormEl.reset();
+            }
+        }
+
+        function changePaymentDate(direction) {
+            const dateInput = document.getElementById('payment-date');
+            if (!dateInput || !currentFile) return;
+
+            const currentDate = new Date(dateInput.value);
+
+            if (direction === 'prev') {
+                currentDate.setDate(currentDate.getDate() - 1);
+            } else {
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            const newDate = currentDate.toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
+            const fileStartDate = currentFile.fileStartDate;
+
+            // Validate date range
+            if (newDate <= today && newDate >= fileStartDate) {
+                dateInput.value = newDate;
+                updateDateNavigationButtons();
+            }
+        }
+
+        function updateDateNavigationButtons() {
+            const dateInput = document.getElementById('payment-date');
+            if (!dateInput || !currentFile) return;
+
+            const currentDate = new Date(dateInput.value);
+            const today = new Date();
+            const fileStartDate = new Date(currentFile.fileStartDate);
+
+            const prevBtn = dateInput.parentElement.querySelector('button:first-child');
+            const nextBtn = dateInput.parentElement.querySelector('button:last-child');
+
+            if (prevBtn) {
+                prevBtn.disabled = currentDate <= fileStartDate;
+            }
+
+            if (nextBtn) {
+                nextBtn.disabled = currentDate >= today;
+            }
+        }
+
+        // Edit transaction modal functions
+        function editTransaction(transactionId) {
+            // Find transaction
+            const transaction = Object.values(mockTransactions)
+                .flat()
+                .find(t => t.id === transactionId);
+
+            if (!transaction || !currentFile) return;
+
+            currentTransaction = transaction;
+
+            const editDateEl = document.getElementById('edit-transaction-date');
+            const editAmountEl = document.getElementById('edit-transaction-amount');
+            const editModeEl = document.getElementById('edit-transaction-mode');
+            const editModalEl = document.getElementById('edit-transaction-modal');
+
+            if (!editDateEl || !editAmountEl || !editModeEl || !editModalEl) return;
+
+            // Populate form
+            editDateEl.value = transaction.date;
+            editAmountEl.value = transaction.amount;
+            editModeEl.value = transaction.mode;
+
+            // Set date constraints
+            const fileStartDate = currentFile.fileStartDate;
+            const today = new Date().toISOString().split('T')[0];
+
+            editDateEl.min = fileStartDate;
+            editDateEl.max = today;
+
+            // Update date navigation
+            updateEditTransactionDateNavigationButtons();
+
+            // Show modal
+            editModalEl.classList.add('active');
+        }
+
+        function closeEditTransactionModal() {
+            const editModalEl = document.getElementById('edit-transaction-modal');
+            const editFormEl = document.getElementById('edit-transaction-form');
+
+            if (editModalEl) {
+                editModalEl.classList.remove('active');
+            }
+
+            if (editFormEl) {
+                editFormEl.reset();
+            }
+
+            currentTransaction = null;
+        }
+
+        function changeEditTransactionDate(direction) {
+            const dateInput = document.getElementById('edit-transaction-date');
+            if (!dateInput || !currentFile) return;
+
+            const currentDate = new Date(dateInput.value);
+
+            if (direction === 'prev') {
+                currentDate.setDate(currentDate.getDate() - 1);
+            } else {
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            const newDate = currentDate.toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
+            const fileStartDate = currentFile.fileStartDate;
+
+            if (newDate <= today && newDate >= fileStartDate) {
+                dateInput.value = newDate;
+                updateEditTransactionDateNavigationButtons();
+            }
+        }
+
+        function updateEditTransactionDateNavigationButtons() {
+            const dateInput = document.getElementById('edit-transaction-date');
+            if (!dateInput || !currentFile) return;
+
+            const currentDate = new Date(dateInput.value);
+            const today = new Date();
+            const fileStartDate = new Date(currentFile.fileStartDate);
+
+            const prevBtn = dateInput.parentElement.querySelector('button:first-child');
+            const nextBtn = dateInput.parentElement.querySelector('button:last-child');
+
+            if (prevBtn) {
+                prevBtn.disabled = currentDate <= fileStartDate;
+            }
+
+            if (nextBtn) {
+                nextBtn.disabled = currentDate >= today;
+            }
+        }
+
+        // Form handlers
+        async function handleCreateFile(e) {
+            e.preventDefault();
+
+            console.log('Create file form submitted');
+
+            const formData = new FormData(e.target);
+
+            // Get form data with correct field names
+            const fileData = {
+                personFullName: formData.get('personFullName'),
+                personMobile: formData.get('personMobile'),
+                referenceMobile: formData.get('referenceMobile'),
+                address: formData.get('address'),
+                businessName: formData.get('businessName'),
+                businessAddress: formData.get('businessAddress'),
+                principalAmount: parseInt(formData.get('principalAmount')),
+                installment: parseInt(formData.get('installment')),
+                fileStartDate: formData.get('fileStartDate'),
+                fileEndDate: formData.get('fileEndDate')
+            };
+
+            console.log('Form data:', fileData);
+
+            // Validate required fields
+            const requiredFields = ['personFullName', 'personMobile', 'referenceMobile', 'address', 'businessName', 'businessAddress', 'principalAmount', 'installment', 'fileStartDate', 'fileEndDate'];
+            for (const field of requiredFields) {
+                if (!fileData[field] || (typeof fileData[field] === 'string' && fileData[field].trim() === '')) {
+                    showToast(`${field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} is required`, 'error');
+                    return;
+                }
+            }
+
+            // Validate amount
+            if (fileData.principalAmount <= 0 || fileData.principalAmount > 500000) {
+                showToast('Principal amount must be between ₹1 and ₹500,000', 'error');
+                return;
+            }
+
+            // Validate installment
+            if (fileData.installment <= 0) {
+                showToast('Daily installment must be positive', 'error');
+                return;
+            }
+
+            // Validate start date - can be past date (historic)
+            const startDate = new Date(fileData.fileStartDate);
+            // No validation needed for start date being in the past - it's allowed
+
+            // Validate end date
+            const endDate = new Date(fileData.fileEndDate);
+            if (endDate <= startDate) {
+                showToast('File end date must be after start date', 'error');
+                return;
+            }
+
+            try {
+                // Send to Google Sheets API
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'createFile',
+                        data: fileData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                console.log('File created successfully:', result);
+
+                // Reset form and show success
+                e.target.reset();
+                showToast(`File created successfully! File #${result.fileNumber}`, 'success');
+
+                // Switch to active files view and reload data
+                showView('active');
+
+                // Add a small delay to ensure DOM is ready, then reload files
+                setTimeout(() => {
+                    loadFiles(); // Explicitly reload files to show the new file
+                }, 50);
+
+            } catch (error) {
+                console.error('Error creating file:', error);
+                showToast('Error creating file: ' + error.message, 'error');
+            }
+        }
+
+
+
+        async function handlePayment(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const paymentData = {
+                fileNumber: currentFile.id,
+                date: formData.get('paymentDate'),
+                amount: parseInt(formData.get('paymentAmount')),
+                mode: formData.get('paymentMode')
+            };
+
+            // Validate date
+            const paymentDate = new Date(paymentData.date);
+            const today = new Date();
+            const fileStartDate = new Date(currentFile.fileStartDate);
+
+            if (paymentDate > today) {
+                showToast('Payment date cannot be in the future', 'error');
+                return;
+            }
+
+            if (paymentDate < fileStartDate) {
+                showToast('Payment date cannot be before file start date', 'error');
+                return;
+            }
+
+            try {
+                // Send to Google Sheets API
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addTransaction',
+                        data: paymentData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                // Close modal and refresh
+                closePaymentModal();
+                viewFile(currentFile.id);
+                showToast('Payment recorded successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error recording payment:', error);
+                showToast('Error recording payment: ' + error.message, 'error');
+            }
+        }
+
+        function handleEditTransaction(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const editData = {
+                date: formData.get('editTransactionDate'),
+                amount: parseInt(formData.get('editTransactionAmount')),
+                mode: formData.get('editTransactionMode')
+            };
+
+            // Validate date
+            const editDate = new Date(editData.date);
+            const today = new Date();
+            const fileStartDate = new Date(currentFile.fileStartDate);
+
+            if (editDate > today) {
+                showToast('Transaction date cannot be in the future', 'error');
+                return;
+            }
+
+            if (editDate < fileStartDate) {
+                showToast('Transaction date cannot be before file start date', 'error');
+                return;
+            }
+
+            // Check if another transaction exists for the new date (if date changed)
+            if (editData.date !== currentTransaction.date) {
+                const existingTransaction = mockTransactions[currentFile.id]?.find(t => t.date === editData.date);
+                if (existingTransaction) {
+                    showToast('Another transaction already exists for this date', 'error');
+                    return;
+                }
+            }
+
+            // Update transaction
+            const oldAmount = currentTransaction.amount;
+            currentTransaction.date = editData.date;
+            currentTransaction.amount = editData.amount;
+            currentTransaction.mode = editData.mode;
+
+            // Update file stats
+            currentFile.totalReceived = currentFile.totalReceived - oldAmount + editData.amount;
+            currentFile.bounces = getBounceCount(currentFile);
+
+            // Close modal and refresh
+            closeEditTransactionModal();
+            viewFile(currentFile.id);
+            showToast('Transaction updated successfully!', 'success');
+        }
+
+        function deleteTransaction() {
+            if (!currentTransaction) return;
+
+            if (!confirm('Are you sure you want to delete this transaction?')) return;
+
+            // Remove transaction
+            const fileTransactions = mockTransactions[currentFile.id];
+            const index = fileTransactions.findIndex(t => t.id === currentTransaction.id);
+            if (index > -1) {
+                fileTransactions.splice(index, 1);
+            }
+
+            // Update file stats
+            currentFile.totalReceived -= currentTransaction.amount;
+            currentFile.transactions -= 1;
+            currentFile.bounces = getBounceCount(currentFile);
+
+            // Close modal and refresh
+            closeEditTransactionModal();
+            viewFile(currentFile.id);
+            showToast('Transaction deleted successfully!', 'success');
+        }
+
+        async function closeFile() {
+            if (!currentFile || currentFile.status !== 'ACTIVE') return;
+
+            if (!confirm('Are you sure you want to close this file?')) return;
+
+            try {
+                // Send to Google Sheets API
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'updateFileStatus',
+                        data: {
+                            fileNumber: currentFile.id,
+                            status: 'CLOSED'
+                        }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                // Refresh and go back to active files
+                showView('active');
+                showToast('File closed successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error closing file:', error);
+                showToast('Error closing file: ' + error.message, 'error');
+            }
+        }
+
+        // Utility functions
+        function getBounceCount(file) {
+            // This function is now handled by the Google Sheets API
+            // The bounce count is calculated on the server side
+            return file.bounces || 0;
+        }
+
+        function formatDate(date) {
+            if (typeof date === 'string') {
+                date = new Date(date);
+            }
+            return date.toISOString().split('T')[0];
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+
+            const container = document.getElementById('toast-container');
+            if (container) {
+                container.appendChild(toast);
+
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 3000);
+            }
+        }
+
+        // Close modals when clicking outside
+        window.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // Prevent form submission on Enter key in date inputs
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && e.target.type === 'date') {
+                e.preventDefault();
+            }
+        });
+
+
+
+        // Update end date minimum when start date changes
+        const fileStartDateEl = document.getElementById('fileStartDate');
+        const fileEndDateEl = document.getElementById('fileEndDate');
+
+        if (fileStartDateEl && fileEndDateEl) {
+            fileStartDateEl.addEventListener('change', function () {
+                const startDate = new Date(this.value);
+                const nextDay = new Date(startDate);
+                nextDay.setDate(nextDay.getDate() + 1);
+
+                // Set minimum end date to day after start date
+                fileEndDateEl.min = nextDay.toISOString().split('T')[0];
+
+                // If current end date is before or equal to start date, update it
+                const currentEndDate = new Date(fileEndDateEl.value);
+                if (currentEndDate <= startDate) {
+                    fileEndDateEl.value = nextDay.toISOString().split('T')[0];
+                }
+            });
+        } 
+    </script>
+</body>
+
+</html>
