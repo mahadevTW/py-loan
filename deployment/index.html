@@ -1173,11 +1173,19 @@
 
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
+    
+    <!-- Include mock data for development -->
     <script>
         // Configuration
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4N5sbuqP2EHgBVhi5yFbSUgXSrfz_85WXCFmU0NlJfpulggio565afeSM1Z9ZWX2drQ/exec'; // Replace with your deployment URL
         // const ENV = 'production';
         const ENV = 'development';
+        
+        // Include mock data if in development mode
+        if (ENV === 'development') {
+            document.write('<script src="mock-data.js"><\/script>');
+        }
+        
         // Global variables for Google Sheets data
         let files = [];
         let transactions = [];
@@ -1311,20 +1319,24 @@
         }
 
         // Load and display files
-        // Load and display files from Google Sheets
+        // Load and display files from Google Sheets or mock data
         async function loadFiles() {
             try {
-                console.log('Loading files from Google Sheets...');
+                if (ENV === 'development') {
+                    console.log('Loading files from mock data...');
+                    files = await mockAPI.getFiles();
+                } else {
+                    console.log('Loading files from Google Sheets...');
+                    // Fetch files from Google Sheets API
+                    const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getFiles`);
+                    const data = await response.json();
 
-                // Fetch files from Google Sheets API
-                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getFiles`);
-                const data = await response.json();
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
 
-                if (data.error) {
-                    throw new Error(data.error);
+                    files = data;
                 }
-
-                files = data;
 
                 const activeFiles = files.filter(file => file.status === 'ACTIVE');
                 const closedFiles = files.filter(file => file.status === 'CLOSED');
@@ -1492,7 +1504,7 @@
             showView('file-details');
         }
 
-        // Load transactions for a file from Google Sheets
+        // Load transactions for a file from Google Sheets or mock data
         async function loadTransactions(fileId) {
             const tbody = document.getElementById('transactions-tbody');
             if (!tbody) return;
@@ -1500,15 +1512,22 @@
             tbody.innerHTML = '';
 
             try {
-                // Fetch transactions from Google Sheets API
-                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getTransactions&fileNumber=${fileId}`);
-                const data = await response.json();
+                let transactions = [];
+                
+                if (ENV === 'development') {
+                    console.log('Loading transactions from mock data for file', fileId);
+                    transactions = await mockAPI.getTransactions(fileId);
+                } else {
+                    // Fetch transactions from Google Sheets API
+                    const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getTransactions&fileNumber=${fileId}`);
+                    const data = await response.json();
 
-                if (data.error) {
-                    throw new Error(data.error);
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    transactions = data || [];
                 }
-
-                const transactions = data || [];
                 const file = files.find(f => f.id === fileId);
 
                 if (!file) return;
@@ -1671,9 +1690,18 @@
         // Edit transaction modal functions
         function editTransaction(transactionId) {
             // Find transaction
-            const transaction = Object.values(mockTransactions)
-                .flat()
-                .find(t => t.id === transactionId);
+            let transaction;
+            
+            if (ENV === 'development') {
+                transaction = Object.values(mockTransactions)
+                    .flat()
+                    .find(t => t.id === transactionId);
+            } else {
+                // For production, we need to find the transaction from the current file's transactions
+                // This would need to be implemented based on how transactions are stored in Google Sheets
+                console.log('Edit transaction not implemented for production mode');
+                return;
+            }
 
             if (!transaction || !currentFile) return;
 
@@ -1819,22 +1847,29 @@
             }
 
             try {
-                // Send to Google Sheets API
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'createFile',
-                        data: fileData
-                    })
-                });
+                let result;
+                
+                if (ENV === 'development') {
+                    console.log('Creating file using mock API');
+                    result = await mockAPI.createFile(fileData);
+                } else {
+                    // Send to Google Sheets API
+                    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'createFile',
+                            data: fileData
+                        })
+                    });
 
-                const result = await response.json();
+                    result = await response.json();
 
-                if (result.error) {
-                    throw new Error(result.error);
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
                 }
 
                 console.log('File created successfully:', result);
@@ -1886,22 +1921,29 @@
             }
 
             try {
-                // Send to Google Sheets API
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'addTransaction',
-                        data: paymentData
-                    })
-                });
+                let result;
+                
+                if (ENV === 'development') {
+                    console.log('Adding payment using mock API');
+                    result = await mockAPI.addTransaction(paymentData);
+                } else {
+                    // Send to Google Sheets API
+                    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'addTransaction',
+                            data: paymentData
+                        })
+                    });
 
-                const result = await response.json();
+                    result = await response.json();
 
-                if (result.error) {
-                    throw new Error(result.error);
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
                 }
 
                 // Close modal and refresh
@@ -1915,7 +1957,7 @@
             }
         }
 
-        function handleEditTransaction(e) {
+        async function handleEditTransaction(e) {
             e.preventDefault();
 
             const formData = new FormData(e.target);
@@ -1940,52 +1982,56 @@
                 return;
             }
 
-            // Check if another transaction exists for the new date (if date changed)
-            if (editData.date !== currentTransaction.date) {
-                const existingTransaction = mockTransactions[currentFile.id]?.find(t => t.date === editData.date);
-                if (existingTransaction) {
-                    showToast('Another transaction already exists for this date', 'error');
+            try {
+                if (ENV === 'development') {
+                    // Check if another transaction exists for the new date (if date changed)
+                    if (editData.date !== currentTransaction.date) {
+                        const existingTransaction = mockTransactions[currentFile.id]?.find(t => t.date === editData.date);
+                        if (existingTransaction) {
+                            showToast('Another transaction already exists for this date', 'error');
+                            return;
+                        }
+                    }
+
+                    await mockAPI.updateTransaction(currentTransaction.id, editData);
+                } else {
+                    // For production, implement Google Sheets API call
+                    console.log('Edit transaction not implemented for production mode');
                     return;
                 }
+
+                // Close modal and refresh
+                closeEditTransactionModal();
+                viewFile(currentFile.id);
+                showToast('Transaction updated successfully!', 'success');
+            } catch (error) {
+                console.error('Error updating transaction:', error);
+                showToast('Error updating transaction: ' + error.message, 'error');
             }
-
-            // Update transaction
-            const oldAmount = currentTransaction.amount;
-            currentTransaction.date = editData.date;
-            currentTransaction.amount = editData.amount;
-            currentTransaction.mode = editData.mode;
-
-            // Update file stats
-            currentFile.totalReceived = currentFile.totalReceived - oldAmount + editData.amount;
-            currentFile.bounces = getBounceCount(currentFile);
-
-            // Close modal and refresh
-            closeEditTransactionModal();
-            viewFile(currentFile.id);
-            showToast('Transaction updated successfully!', 'success');
         }
 
-        function deleteTransaction() {
+        async function deleteTransaction() {
             if (!currentTransaction) return;
 
             if (!confirm('Are you sure you want to delete this transaction?')) return;
 
-            // Remove transaction
-            const fileTransactions = mockTransactions[currentFile.id];
-            const index = fileTransactions.findIndex(t => t.id === currentTransaction.id);
-            if (index > -1) {
-                fileTransactions.splice(index, 1);
+            try {
+                if (ENV === 'development') {
+                    await mockAPI.deleteTransaction(currentTransaction.id);
+                } else {
+                    // For production, implement Google Sheets API call
+                    console.log('Delete transaction not implemented for production mode');
+                    return;
+                }
+
+                // Close modal and refresh
+                closeEditTransactionModal();
+                viewFile(currentFile.id);
+                showToast('Transaction deleted successfully!', 'success');
+            } catch (error) {
+                console.error('Error deleting transaction:', error);
+                showToast('Error deleting transaction: ' + error.message, 'error');
             }
-
-            // Update file stats
-            currentFile.totalReceived -= currentTransaction.amount;
-            currentFile.transactions -= 1;
-            currentFile.bounces = getBounceCount(currentFile);
-
-            // Close modal and refresh
-            closeEditTransactionModal();
-            viewFile(currentFile.id);
-            showToast('Transaction deleted successfully!', 'success');
         }
 
         async function closeFile() {
@@ -1994,25 +2040,35 @@
             if (!confirm('Are you sure you want to close this file?')) return;
 
             try {
-                // Send to Google Sheets API
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'updateFileStatus',
-                        data: {
-                            fileNumber: currentFile.id,
-                            status: 'CLOSED'
-                        }
-                    })
-                });
+                let result;
+                
+                if (ENV === 'development') {
+                    console.log('Closing file using mock API');
+                    result = await mockAPI.updateFileStatus({
+                        fileNumber: currentFile.id,
+                        status: 'CLOSED'
+                    });
+                } else {
+                    // Send to Google Sheets API
+                    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'updateFileStatus',
+                            data: {
+                                fileNumber: currentFile.id,
+                                status: 'CLOSED'
+                            }
+                        })
+                    });
 
-                const result = await response.json();
+                    result = await response.json();
 
-                if (result.error) {
-                    throw new Error(result.error);
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
                 }
 
                 // Refresh and go back to active files
@@ -2027,9 +2083,13 @@
 
         // Utility functions
         function getBounceCount(file) {
-            // This function is now handled by the Google Sheets API
-            // The bounce count is calculated on the server side
-            return file.bounces || 0;
+            if (ENV === 'development') {
+                return mockAPI.getBounceCount(file);
+            } else {
+                // This function is now handled by the Google Sheets API
+                // The bounce count is calculated on the server side
+                return file.bounces || 0;
+            }
         }
 
         function formatDate(date) {
