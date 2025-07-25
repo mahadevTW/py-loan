@@ -1516,7 +1516,7 @@
                 'file-principal': `₹${file.principalAmount.toLocaleString()}`,
                 'file-installment': `₹${file.installment.toLocaleString()}`,
                 'file-received': `₹${file.totalReceived.toLocaleString()}`,
-                'file-pending': `₹${(file.principalAmount - file.totalReceived).toLocaleString()}`,
+                'file-pending': `₹${file.pendingAmount.toLocaleString()}`,
                 'file-bounces': file.bounces,
                 'file-transactions': file.transactions,
                 'file-start-date': formatDate(file.fileStartDate),
