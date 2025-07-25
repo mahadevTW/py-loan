@@ -6,7 +6,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
 - ✅ Root route (`/`) that displays "Hello, World!"
 - ✅ Health check endpoint (`/health`) with database connectivity status
-- ✅ PostgreSQL database connection using SQLAlchemy
+- ✅ PostgreSQL database connection using psycopg2
 - ✅ Modern, responsive web interface
 - ✅ Ready for deployment on Render.com
 
@@ -14,7 +14,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
 ### Prerequisites
 
-- Python 3.11 or higher (Python 3.13 has compatibility issues with some dependencies)
+- Python 3.8 or higher
 - pip (Python package installer)
 - PostgreSQL database (optional for local testing)
 
@@ -109,17 +109,13 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
    **Basic Settings:**
    - **Name**: `your-app-name`
-   - **Environment**: `Python 3.11` (or specify in `runtime.txt`)
+   - **Environment**: `Python 3`
    - **Region**: Choose closest to your users
    - **Branch**: `main` (or your default branch)
 
    **Build & Deploy Settings:**
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn app:app`
-
-   **Python Version Options:**
-   - **Option A**: Set "Environment" to "Python 3.11" in Render dashboard
-   - **Option B**: Use `runtime.txt` file (recommended for version control)
 
 5. **Environment Variables**
 
@@ -143,9 +139,8 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 |---------|-------|
 | Build Command | `pip install -r requirements.txt` |
 | Start Command | `gunicorn app:app` |
-| Environment | Python 3.11 |
+| Environment | Python 3 |
 | Environment Variable | `DATABASE_URL` |
-| Python Version | Specified in `runtime.txt` or dashboard |
 
 ### Important Notes for Render Deployment
 
@@ -208,7 +203,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
    - Kill existing processes using the port
 
 3. **Dependencies Installation Issues**
-   - Ensure you're using Python 3.11+ (avoid Python 3.13 for compatibility)
+   - Ensure you're using Python 3.8+
    - Try upgrading pip: `pip install --upgrade pip`
    - Use virtual environment: `python -m venv venv && source venv/bin/activate`
 
@@ -217,7 +212,6 @@ A simple Flask web application with PostgreSQL database connectivity check and h
    - Ensure `requirements.txt` is in the root directory
    - Verify `gunicorn` is in requirements.txt
    - Check that `DATABASE_URL` is set in environment variables
-   - **Python 3.13 Issue**: If you see SQLAlchemy typing errors, ensure `runtime.txt` specifies Python 3.11
 
 ### Environment Variables Reference
 

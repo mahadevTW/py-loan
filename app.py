@@ -1,7 +1,7 @@
 import os
+import psycopg2
+from urllib.parse import urlparse
 from flask import Flask, render_template, jsonify
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -16,11 +16,27 @@ def check_database_connection():
         if not database_url:
             return "error"
         
-        engine = create_engine(database_url)
-        with engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
+        # Parse the DATABASE_URL
+        parsed = urlparse(database_url)
+        
+        # Connect to PostgreSQL using psycopg2
+        conn = psycopg2.connect(
+            host=parsed.hostname,
+            port=parsed.port or 5432,
+            database=parsed.path[1:],  # Remove leading slash
+            user=parsed.username,
+            password=parsed.password
+        )
+        
+        # Test the connection with a simple query
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        
+        conn.close()
         return "ok"
-    except SQLAlchemyError:
+    except Exception as e:
+        print(f"Database connection error: {e}")
         return "error"
 
 @app.route('/')
