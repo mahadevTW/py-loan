@@ -44,6 +44,89 @@
             font-size: 1rem;
         }
 
+        /* Health Check Styles */
+        .health-check {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .health-check h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .health-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .health-status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .health-status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .health-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-icon.loading {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-icon.success {
+            background: #28a745;
+        }
+
+        .status-icon.error {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .spinner-small {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffc107;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .form-group {
             margin-bottom: 20px;
             text-align: left;
@@ -125,11 +208,6 @@
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         .footer {
             margin-top: 30px;
             color: #666;
@@ -153,20 +231,33 @@
         <div class="logo">📊 Loan Tracker</div>
         <div class="subtitle">Sign in to access your loan management system</div>
         
+        <!-- Health Check Section -->
+        <div class="health-check">
+            <h3>🔍 System Health Check</h3>
+            <div class="health-status loading" id="service-status">
+                <div class="status-icon loading"></div>
+                <span>Service Status: Checking...</span>
+            </div>
+            <div class="health-status loading" id="database-status">
+                <div class="status-icon loading"></div>
+                <span>Database: Checking...</span>
+            </div>
+        </div>
+        
         <div class="error-message" id="error-message"></div>
         
         <form id="login-form">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" required autocomplete="username">
+                <input type="text" id="username" name="username" required autocomplete="username" disabled>
             </div>
             
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password">
+                <input type="password" id="password" name="password" required autocomplete="current-password" disabled>
             </div>
             
-            <button type="submit" class="login-btn" id="login-btn">
+            <button type="submit" class="login-btn" id="login-btn" disabled>
                 Sign In
                 <span class="loading" id="loading">
                     <div class="spinner"></div>
@@ -175,14 +266,170 @@
         </form>
         
         <div class="footer">
-            <p>Default credentials: admin / admin123</p>
             <p>Contact administrator for access</p>
         </div>
     </div>
 
     <script>
+        let healthCheckComplete = false;
+        let serviceHealthy = false;
+        let databaseHealthy = false;
+
+        // Health check function
+        async function performHealthCheck() {
+            const serviceStatusEl = document.getElementById('service-status');
+            const databaseStatusEl = document.getElementById('database-status');
+            const loginForm = document.getElementById('login-form');
+            const loginBtn = document.getElementById('login-btn');
+
+            try {
+                console.log('Performing health check...');
+                const response = await fetch('/health', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Health check response:', data);
+
+                    // Update service status
+                    serviceHealthy = data.status === 'ok';
+                    updateHealthStatus(serviceStatusEl, serviceHealthy, 'Service Status', 'Service is running');
+
+                    // Update database status
+                    databaseHealthy = data.db === 'ok';
+                    updateHealthStatus(databaseStatusEl, databaseHealthy, 'Database', 'Database is connected');
+
+                    // Enable login if both are healthy
+                    if (serviceHealthy && databaseHealthy) {
+                        enableLogin();
+                    } else {
+                        disableLogin();
+                    }
+                } else {
+                    // Service is down
+                    updateHealthStatus(serviceStatusEl, false, 'Service Status', 'Service is unavailable');
+                    updateHealthStatus(databaseStatusEl, false, 'Database', 'Cannot check database');
+                    disableLogin();
+                }
+            } catch (error) {
+                console.error('Health check failed:', error);
+                updateHealthStatus(serviceStatusEl, false, 'Service Status', 'Service is unavailable');
+                updateHealthStatus(databaseStatusEl, false, 'Database', 'Cannot check database');
+                disableLogin();
+            }
+
+            healthCheckComplete = true;
+        }
+
+        function updateHealthStatus(element, isHealthy, label, message) {
+            const statusIcon = element.querySelector('.status-icon');
+            const statusText = element.querySelector('span');
+
+            if (isHealthy) {
+                element.className = 'health-status success';
+                statusIcon.className = 'status-icon success';
+                statusText.textContent = `${label}: ${message}`;
+            } else {
+                element.className = 'health-status error';
+                statusIcon.className = 'status-icon error';
+                statusText.textContent = `${label}: ${message}`;
+            }
+        }
+
+        function enableLogin() {
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const loginBtn = document.getElementById('login-btn');
+
+            usernameInput.disabled = false;
+            passwordInput.disabled = false;
+            loginBtn.disabled = false;
+
+            // Add success message
+            showMessage('✅ System is ready. You can now log in.', 'success');
+        }
+
+        function disableLogin() {
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const loginBtn = document.getElementById('login-btn');
+
+            usernameInput.disabled = true;
+            passwordInput.disabled = true;
+            loginBtn.disabled = true;
+
+            // Add error message
+            showMessage('❌ System is not ready. Please wait or contact administrator.', 'error');
+        }
+
+        function showMessage(message, type) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            
+            if (type === 'success') {
+                errorMessage.style.background = '#d4edda';
+                errorMessage.style.color = '#155724';
+            } else {
+                errorMessage.style.background = '#fee';
+                errorMessage.style.color = '#c33';
+            }
+        }
+
+        // Perform health check on page load
+        window.addEventListener('load', function() {
+            // Check if user is already logged in first
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                // Verify token is still valid
+                fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Token is valid, redirect to loan tracker
+                        window.location.href = '/loan-tracker';
+                    } else {
+                        // Token is invalid, clear it and perform health check
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('userInfo');
+                        performHealthCheck();
+                    }
+                })
+                .catch(() => {
+                    // Network error, clear token and perform health check
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                    performHealthCheck();
+                });
+            } else {
+                // No token, perform health check
+                performHealthCheck();
+            }
+        });
+
+        // Retry health check every 30 seconds if not healthy
+        setInterval(() => {
+            if (healthCheckComplete && (!serviceHealthy || !databaseHealthy)) {
+                console.log('Retrying health check...');
+                performHealthCheck();
+            }
+        }, 30000);
+
         document.getElementById('login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Don't allow login if health check failed
+            if (!serviceHealthy || !databaseHealthy) {
+                showMessage('System is not ready. Please wait for health check to complete.', 'error');
+                return;
+            }
             
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
@@ -195,7 +442,7 @@
             
             // Validate inputs
             if (!username || !password) {
-                showError('Please enter both username and password');
+                showMessage('Please enter both username and password', 'error');
                 return;
             }
             
@@ -225,49 +472,15 @@
                     // Redirect to loan tracker
                     window.location.href = '/loan-tracker';
                 } else {
-                    showError(data.error || 'Login failed');
+                    showMessage(data.error || 'Login failed', 'error');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showError('Network error. Please try again.');
+                showMessage('Network error. Please try again.', 'error');
             } finally {
                 // Reset loading state
                 loginBtn.disabled = false;
                 loading.style.display = 'none';
-            }
-        });
-        
-        function showError(message) {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-        }
-        
-        // Check if user is already logged in
-        window.addEventListener('load', function() {
-            const token = localStorage.getItem('authToken');
-            if (token) {
-                // Verify token is still valid
-                fetch('/api/auth/verify', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        // Token is valid, redirect to loan tracker
-                        window.location.href = '/loan-tracker';
-                    } else {
-                        // Token is invalid, clear it
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('userInfo');
-                    }
-                })
-                .catch(() => {
-                    // Network error, clear token
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('userInfo');
-                });
             }
         });
     </script>
