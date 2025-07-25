@@ -14,7 +14,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.10.11 (specified in .python-version file)
 - pip (Python package installer)
 - PostgreSQL database (optional for local testing)
 
@@ -109,13 +109,15 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
    **Basic Settings:**
    - **Name**: `your-app-name`
-   - **Environment**: `Python 3`
+   - **Environment**: `Python 3` (runtime.txt will specify Python 3.11)
    - **Region**: Choose closest to your users
    - **Branch**: `main` (or your default branch)
 
    **Build & Deploy Settings:**
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn app:app`
+
+   **Python Version**: The `runtime.txt` file specifies Python 3.11.9 to avoid Python 3.13 compatibility issues.
 
 5. **Environment Variables**
 
@@ -185,6 +187,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 ├── templates/
 │   └── index.html      # Homepage template with JavaScript
 ├── requirements.txt    # Python dependencies
+├── runtime.txt         # Python version specification (Python 3.11.9)
 └── README.md          # This file
 ```
 
@@ -212,6 +215,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
    - Ensure `requirements.txt` is in the root directory
    - Verify `gunicorn` is in requirements.txt
    - Check that `DATABASE_URL` is set in environment variables
+   - **Python 3.13 Issue**: If you see psycopg2 import errors, ensure `runtime.txt` specifies Python 3.11
 
 ### Environment Variables Reference
 
