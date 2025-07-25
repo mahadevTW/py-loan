@@ -1,5 +1,5 @@
 import os
-import psycopg2
+import pg8000
 from urllib.parse import urlparse
 from flask import Flask, render_template, jsonify
 from dotenv import load_dotenv
@@ -19,8 +19,8 @@ def check_database_connection():
         # Parse the DATABASE_URL
         parsed = urlparse(database_url)
         
-        # Connect to PostgreSQL using psycopg2
-        conn = psycopg2.connect(
+        # Connect to PostgreSQL using pg8000
+        conn = pg8000.Connection(
             host=parsed.hostname,
             port=parsed.port or 5432,
             database=parsed.path[1:],  # Remove leading slash
@@ -29,11 +29,12 @@ def check_database_connection():
         )
         
         # Test the connection with a simple query
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT 1")
-            cursor.fetchone()
-        
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        cursor.close()
         conn.close()
+        
         return "ok"
     except Exception as e:
         print(f"Database connection error: {e}")

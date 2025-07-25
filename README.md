@@ -6,7 +6,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
 - ✅ Root route (`/`) that displays "Hello, World!"
 - ✅ Health check endpoint (`/health`) with database connectivity status
-- ✅ PostgreSQL database connection using psycopg2
+- ✅ PostgreSQL database connection using pg8000 (pure Python adapter)
 - ✅ Modern, responsive web interface
 - ✅ Ready for deployment on Render.com
 
@@ -14,7 +14,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
 ### Prerequisites
 
-- Python 3.10.11 (specified in .python-version file)
+- Python 3.13.5 (specified in .python-version file)
 - pip (Python package installer)
 - PostgreSQL database (optional for local testing)
 
@@ -109,7 +109,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
    **Basic Settings:**
    - **Name**: `your-app-name`
-   - **Environment**: `Python 3` (runtime.txt will specify Python 3.11)
+   - **Environment**: `Python 3`
    - **Region**: Choose closest to your users
    - **Branch**: `main` (or your default branch)
 
@@ -117,13 +117,16 @@ A simple Flask web application with PostgreSQL database connectivity check and h
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn app:app`
 
-   **Python Version**: The `runtime.txt` file specifies Python 3.11.9 to avoid Python 3.13 compatibility issues.
+   **Python Version**: Set `PYTHON_VERSION=3.10.11` in Render environment variables (matches .python-version file)
 
 5. **Environment Variables**
 
-   Add the following environment variable in Render dashboard:
+   Add the following environment variables in Render dashboard:
    - **Key**: `DATABASE_URL`
    - **Value**: Use the **Internal URL** from your PostgreSQL service
+   
+   - **Key**: `PYTHON_VERSION`
+   - **Value**: `3.13.5`
    
    **Important - URL Types:**
    - **Internal URL**: Use this for `DATABASE_URL` (faster, more secure)
@@ -142,7 +145,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 | Build Command | `pip install -r requirements.txt` |
 | Start Command | `gunicorn app:app` |
 | Environment | Python 3 |
-| Environment Variable | `DATABASE_URL` |
+| Environment Variables | `DATABASE_URL`, `PYTHON_VERSION=3.13.5` |
 
 ### Important Notes for Render Deployment
 
@@ -187,7 +190,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 ├── templates/
 │   └── index.html      # Homepage template with JavaScript
 ├── requirements.txt    # Python dependencies
-├── runtime.txt         # Python version specification (Python 3.11.9)
+├── .python-version     # Python version specification (3.10.11)
 └── README.md          # This file
 ```
 
@@ -214,14 +217,15 @@ A simple Flask web application with PostgreSQL database connectivity check and h
    - Check build logs in Render dashboard
    - Ensure `requirements.txt` is in the root directory
    - Verify `gunicorn` is in requirements.txt
-   - Check that `DATABASE_URL` is set in environment variables
-   - **Python 3.13 Issue**: If you see psycopg2 import errors, ensure `runtime.txt` specifies Python 3.11
+   - Check that `DATABASE_URL` and `PYTHON_VERSION` are set in environment variables
+   - **Python Version**: Ensure `PYTHON_VERSION=3.13.5` matches your `.python-version` file
 
 ### Environment Variables Reference
 
 | Variable | Description | Example | Required |
 |----------|-------------|---------|----------|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` | Yes |
+| `PYTHON_VERSION` | Python version for Render | `3.13.5` | Yes |
 | `PORT` | Application port (Render sets this) | `5000` | No |
 | `FLASK_ENV` | Flask environment | `development` | No |
 
