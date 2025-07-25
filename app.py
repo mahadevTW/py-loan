@@ -1,12 +1,15 @@
 import os
 import json
 import pytz
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 import pg8000
 from urllib.parse import urlparse
+import jwt
+import bcrypt
+from functools import wraps
 
 # Load environment variables from .env file
 load_dotenv()
@@ -19,6 +22,9 @@ IST = pytz.timezone('Asia/Kolkata')
 
 # Configuration
 MAX_PRINCIPAL_AMOUNT = int(os.environ.get("MAX_PRINCIPAL_AMOUNT", 500000))
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-secret-key-change-in-production")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = 24
 
 def get_db_connection():
     """Get database connection using pg8000"""
@@ -69,6 +75,19 @@ def init_db():
     try:
         cursor = conn.cursor()
         
+        # Create users table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                full_name VARCHAR(255) NOT NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
         # Create files table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS files (
@@ -104,6 +123,19 @@ def init_db():
             )
         """)
         
+        # Create default admin user if not exists
+        cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'admin'")
+        admin_exists = cursor.fetchone()[0]
+        
+        if admin_exists == 0:
+            # Create default admin user (password: admin123)
+            password_hash = bcrypt.hashpw('admin123'.encode('utf-8'), bcrypt.gensalt())
+            cursor.execute("""
+                INSERT INTO users (username, password_hash, full_name, is_active)
+                VALUES (%s, %s, %s, %s)
+            """, ('admin', password_hash.decode('utf-8'), 'Administrator', True))
+            print("✅ Default admin user created (username: admin, password: admin123)")
+        
         conn.commit()
         cursor.close()
         conn.close()
@@ -135,11 +167,87 @@ def check_database_connection():
         print(f"Database connection error: {e}")
         return "error"
 
+def generate_token(user_id, username):
+    """Generate JWT token for user"""
+    payload = {
+        'user_id': user_id,
+        'username': username,
+        'exp': datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
+        'iat': datetime.utcnow()
+    }
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+def verify_token(token):
+    """Verify JWT token and return user info"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+def authenticate_user(username, password):
+    """Authenticate user with username and password"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return None
+        
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, username, password_hash, full_name FROM users WHERE username = %s AND is_active = TRUE", (username,))
+        user_data = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        if user_data and bcrypt.checkpw(password.encode('utf-8'), user_data[2].encode('utf-8')):
+            return {
+                'id': user_data[0],
+                'username': user_data[1],
+                'full_name': user_data[3]
+            }
+        return None
+    except Exception as e:
+        print(f"Authentication error: {e}")
+        return None
+
+def require_auth(f):
+    """Decorator to require authentication for routes"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        
+        if not auth_header:
+            return jsonify({'error': 'Authorization header missing'}), 401
+        
+        try:
+            # Extract token from "Bearer <token>"
+            token = auth_header.split(' ')[1]
+            payload = verify_token(token)
+            
+            if not payload:
+                return jsonify({'error': 'Invalid or expired token'}), 401
+            
+            # Add user info to request context
+            request.user = payload
+            return f(*args, **kwargs)
+            
+        except (IndexError, KeyError):
+            return jsonify({'error': 'Invalid authorization header format'}), 401
+    
+    return decorated_function
+
 # Routes
 @app.route('/')
 def index():
     """Root route that renders the index.html template"""
     return render_template('index.html')
+
+@app.route('/login')
+def login_page():
+    """Login page route"""
+    return render_template('login.html')
 
 @app.route('/loan-tracker')
 def loan_tracker():
@@ -156,8 +264,69 @@ def health():
         "max_principal_amount": MAX_PRINCIPAL_AMOUNT
     })
 
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """User login endpoint"""
+    try:
+        data = request.get_json()
+        
+        if not data or not data.get('username') or not data.get('password'):
+            return jsonify({'error': 'Username and password are required'}), 400
+        
+        username = data['username']
+        password = data['password']
+        
+        # Authenticate user
+        user = authenticate_user(username, password)
+        
+        if not user:
+            return jsonify({'error': 'Invalid username or password'}), 401
+        
+        # Generate token
+        token = generate_token(user['id'], user['username'])
+        
+        return jsonify({
+            'message': 'Login successful',
+            'token': token,
+            'user': {
+                'id': user['id'],
+                'username': user['username'],
+                'full_name': user['full_name']
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/auth/verify', methods=['GET'])
+def verify_auth():
+    """Verify authentication token"""
+    try:
+        auth_header = request.headers.get('Authorization')
+        
+        if not auth_header:
+            return jsonify({'error': 'Authorization header missing'}), 401
+        
+        token = auth_header.split(' ')[1]
+        payload = verify_token(token)
+        
+        if not payload:
+            return jsonify({'error': 'Invalid or expired token'}), 401
+        
+        return jsonify({
+            'valid': True,
+            'user': {
+                'user_id': payload['user_id'],
+                'username': payload['username']
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # API Routes
 @app.route('/api/files', methods=['GET'])
+@require_auth
 def get_files():
     """Get all files with optional status filter"""
     try:
@@ -233,6 +402,7 @@ def get_files():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/files', methods=['POST'])
+@require_auth
 def create_file():
     """Create a new file"""
     try:
@@ -300,6 +470,7 @@ def create_file():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/files/<int:file_id>', methods=['GET'])
+@require_auth
 def get_file(file_id):
     """Get a specific file by ID"""
     try:
@@ -367,6 +538,7 @@ def get_file(file_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/files/<int:file_id>/status', methods=['PUT'])
+@require_auth
 def update_file_status(file_id):
     """Update file status (close file)"""
     try:
@@ -416,6 +588,7 @@ def update_file_status(file_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/files/<int:file_id>/transactions', methods=['GET'])
+@require_auth
 def get_transactions(file_id):
     """Get all transactions for a file"""
     try:
@@ -452,6 +625,7 @@ def get_transactions(file_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/transactions', methods=['POST'])
+@require_auth
 def create_transaction():
     """Create a new transaction"""
     try:
@@ -530,6 +704,7 @@ def create_transaction():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/transactions/<int:transaction_id>', methods=['PUT'])
+@require_auth
 def update_transaction(transaction_id):
     """Update a transaction"""
     try:
@@ -634,6 +809,7 @@ def update_transaction(transaction_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/transactions/<int:transaction_id>', methods=['DELETE'])
+@require_auth
 def delete_transaction(transaction_id):
     """Delete a transaction"""
     try:
@@ -673,6 +849,7 @@ def delete_transaction(transaction_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/stats', methods=['GET'])
+@require_auth
 def get_stats():
     """Get application statistics"""
     try:

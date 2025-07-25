@@ -1189,12 +1189,60 @@
         let currentFile = null;
         let currentTransaction = null;
 
+        // Authentication helper functions
+        function getAuthHeaders() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = '/login';
+                return false;
+            }
+            return true;
+        }
+
+        function handleAuthError() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/login';
+        }
+
+        // Helper function to handle API responses with auth error checking
+        async function handleApiResponse(response, errorMessage) {
+            if (response.status === 401) {
+                handleAuthError();
+                return null;
+            }
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            return data;
+        }
+
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function () {
             initializeApp();
         });
 
         function initializeApp() {
+            // Check authentication first
+            if (!checkAuth()) {
+                return;
+            }
+
             // Set up navigation
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.addEventListener('click', function (e) {
@@ -1329,12 +1377,12 @@
         async function loadFiles() {
             try {
                 console.log('Loading files from Python backend...');
-                const response = await fetch(`${API_BASE_URL}/files?status=${currentView === 'history' ? 'CLOSED' : 'ACTIVE'}`);
-                const data = await response.json();
-
-                if (data.error) {
-                    throw new Error(data.error);
-                }
+                const response = await fetch(`${API_BASE_URL}/files?status=${currentView === 'history' ? 'CLOSED' : 'ACTIVE'}`, {
+                    headers: getAuthHeaders()
+                });
+                
+                const data = await handleApiResponse(response, 'Error loading files');
+                if (!data) return; // Auth error handled
 
                 files = data;
 
@@ -1513,12 +1561,12 @@
 
             try {
                 console.log('Loading transactions from Python backend for file', fileId);
-                const response = await fetch(`${API_BASE_URL}/files/${fileId}/transactions`);
-                const data = await response.json();
-
-                if (data.error) {
-                    throw new Error(data.error);
-                }
+                const response = await fetch(`${API_BASE_URL}/files/${fileId}/transactions`, {
+                    headers: getAuthHeaders()
+                });
+                
+                const data = await handleApiResponse(response, 'Error loading transactions');
+                if (!data) return; // Auth error handled
 
                 const transactions = data || [];
                 const file = files.find(f => f.id === fileId);
@@ -1879,17 +1927,12 @@
                 console.log('Creating file using Python backend');
                 const response = await fetch(`${API_BASE_URL}/files`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(fileData)
                 });
 
-                const result = await response.json();
-
-                if (result.error) {
-                    throw new Error(result.error);
-                }
+                const result = await handleApiResponse(response, 'Error creating file');
+                if (!result) return; // Auth error handled
 
                 console.log('File created successfully:', result);
 
@@ -1943,17 +1986,12 @@
                 console.log('Adding payment using Python backend');
                 const response = await fetch(`${API_BASE_URL}/transactions`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(paymentData)
                 });
 
-                const result = await response.json();
-
-                if (result.error) {
-                    throw new Error(result.error);
-                }
+                const result = await handleApiResponse(response, 'Error recording payment');
+                if (!result) return; // Auth error handled
 
                 // Close modal and refresh
                 closePaymentModal();
@@ -1995,17 +2033,12 @@
                 console.log('Updating transaction using Python backend');
                 const response = await fetch(`${API_BASE_URL}/transactions/${currentTransaction.id}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(editData)
                 });
 
-                const result = await response.json();
-
-                if (result.error) {
-                    throw new Error(result.error);
-                }
+                const result = await handleApiResponse(response, 'Error updating transaction');
+                if (!result) return; // Auth error handled
 
                 // Close modal and refresh
                 closeEditTransactionModal();
@@ -2025,14 +2058,12 @@
             try {
                 console.log('Deleting transaction using Python backend');
                 const response = await fetch(`${API_BASE_URL}/transactions/${currentTransaction.id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
                 });
 
-                const result = await response.json();
-
-                if (result.error) {
-                    throw new Error(result.error);
-                }
+                const result = await handleApiResponse(response, 'Error deleting transaction');
+                if (!result) return; // Auth error handled
 
                 // Close modal and refresh
                 closeEditTransactionModal();
@@ -2053,19 +2084,14 @@
                 console.log('Closing file using Python backend');
                 const response = await fetch(`${API_BASE_URL}/files/${currentFile.id}/status`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({
                         status: 'CLOSED'
                     })
                 });
 
-                const result = await response.json();
-
-                if (result.error) {
-                    throw new Error(result.error);
-                }
+                const result = await handleApiResponse(response, 'Error closing file');
+                if (!result) return; // Auth error handled
 
                 // Refresh and go back to active files
                 showView('active');
