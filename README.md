@@ -14,7 +14,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.11 or higher (Python 3.13 has compatibility issues with some dependencies)
 - pip (Python package installer)
 - PostgreSQL database (optional for local testing)
 
@@ -78,25 +78,38 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 
 ### Deployment Steps
 
-1. **Push your code to GitHub**
+1. **Set up PostgreSQL Database FIRST (Recommended)**
+
+   **Create a PostgreSQL service on Render:**
+   - Go to [Render Dashboard](https://dashboard.render.com/)
+   - Click "New +" and select "PostgreSQL"
+   - Configure the database:
+     - **Name**: `your-app-database`
+     - **Database**: `your_app_db`
+     - **User**: `your_app_user`
+     - **Region**: Choose closest to your users
+   - Click "Create Database"
+   - **Important**: Copy the connection string from the database dashboard
+
+2. **Push your code to GitHub**
    ```bash
    git add .
    git commit -m "Initial commit"
    git push origin main
    ```
 
-2. **Create a new Web Service on Render**
+3. **Create a new Web Service on Render**
 
    - Go to [Render Dashboard](https://dashboard.render.com/)
    - Click "New +" and select "Web Service"
    - Connect your GitHub repository
    - Configure the service:
 
-3. **Service Configuration**
+4. **Service Configuration**
 
    **Basic Settings:**
    - **Name**: `your-app-name`
-   - **Environment**: `Python 3`
+   - **Environment**: `Python 3.11` (or specify in `runtime.txt`)
    - **Region**: Choose closest to your users
    - **Branch**: `main` (or your default branch)
 
@@ -104,28 +117,19 @@ A simple Flask web application with PostgreSQL database connectivity check and h
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn app:app`
 
-4. **Environment Variables**
+   **Python Version Options:**
+   - **Option A**: Set "Environment" to "Python 3.11" in Render dashboard
+   - **Option B**: Use `runtime.txt` file (recommended for version control)
+
+5. **Environment Variables**
 
    Add the following environment variable in Render dashboard:
    - **Key**: `DATABASE_URL`
-   - **Value**: Your PostgreSQL connection string
+   - **Value**: Use the **Internal URL** from your PostgreSQL service
    
-   **Example:**
-   ```
-   postgresql://username:password@host:port/database_name
-   ```
-
-5. **Database Setup (Recommended)**
-
-   **Option A: Use Render's PostgreSQL Service (Recommended)**
-   - Create a new PostgreSQL service on Render first
-   - Copy the provided connection string
-   - Use this as your `DATABASE_URL` in the web service
-   
-   **Option B: Use External Database**
-   - Use your own PostgreSQL database
-   - Ensure it's accessible from Render's servers
-   - Use the connection string as `DATABASE_URL`
+   **Important - URL Types:**
+   - **Internal URL**: Use this for `DATABASE_URL` (faster, more secure)
+   - **External URL**: Only use if you need external access to the database
 
 6. **Deploy**
 
@@ -139,14 +143,16 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 |---------|-------|
 | Build Command | `pip install -r requirements.txt` |
 | Start Command | `gunicorn app:app` |
-| Environment | Python 3 |
+| Environment | Python 3.11 |
 | Environment Variable | `DATABASE_URL` |
+| Python Version | Specified in `runtime.txt` or dashboard |
 
 ### Important Notes for Render Deployment
 
+- **Database First**: Always create the PostgreSQL service before the web service
+- **Internal URL**: Use the Internal URL from PostgreSQL service for `DATABASE_URL` (faster, more secure)
 - **Auto-Deploy**: Render automatically deploys when you push to your main branch
 - **Health Checks**: The `/health` endpoint can be used for Render's health check configuration
-- **Database**: Ensure your database is accessible from Render's servers
 - **Environment Variables**: Set `DATABASE_URL` in Render's dashboard, not in your code
 - **Logs**: Check Render's logs if deployment fails
 
@@ -202,7 +208,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
    - Kill existing processes using the port
 
 3. **Dependencies Installation Issues**
-   - Ensure you're using Python 3.8+
+   - Ensure you're using Python 3.11+ (avoid Python 3.13 for compatibility)
    - Try upgrading pip: `pip install --upgrade pip`
    - Use virtual environment: `python -m venv venv && source venv/bin/activate`
 
@@ -211,6 +217,7 @@ A simple Flask web application with PostgreSQL database connectivity check and h
    - Ensure `requirements.txt` is in the root directory
    - Verify `gunicorn` is in requirements.txt
    - Check that `DATABASE_URL` is set in environment variables
+   - **Python 3.13 Issue**: If you see SQLAlchemy typing errors, ensure `runtime.txt` specifies Python 3.11
 
 ### Environment Variables Reference
 
@@ -225,6 +232,20 @@ A simple Flask web application with PostgreSQL database connectivity check and h
 - **`PORT`**: Automatically set by Render (don't override)
 - **`DATABASE_URL`**: Must be set in Render dashboard
 - **`FLASK_ENV`**: Set to `production` on Render (optional)
+
+### PostgreSQL URL Types on Render
+
+When you create a PostgreSQL service on Render, you'll see two connection URLs:
+
+**Internal URL** (Recommended for `DATABASE_URL`):
+- Format: `postgresql://user:pass@internal-host:5432/database`
+- **Use this for your web service** - faster and more secure
+- Only accessible from other Render services in the same region
+
+**External URL**:
+- Format: `postgresql://user:pass@external-host:5432/database`
+- Only use if you need external access (e.g., from your local machine)
+- Slower and less secure than internal URL
 
 ## Contributing
 
