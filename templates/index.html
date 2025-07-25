@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        /* Header Styles */
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .health-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        
+        .health-indicator {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .health-indicator.loading {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .health-indicator.success {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .health-indicator.error {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .health-details {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .content-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+        
+        .content-placeholder {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 18px;
+            margin-top: 100px;
+        }
+        
+        .content-placeholder h2 {
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+        
+        .content-placeholder p {
+            margin: 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Health Status -->
+    <header class="header">
+        <div class="header-container">
+            <h1 class="header-title">Flask Application</h1>
+            <div class="health-status">
+                <div id="health-indicator" class="health-indicator loading">
+                    Checking...
+                </div>
+                <div class="health-details">
+                    <div id="app-status">App: Checking...</div>
+                    <div id="db-status">DB: Checking...</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="content-container">
+            <div class="content-placeholder">
+                <h2>Loan Tracker Application</h2>
+                <p>Welcome to the Loan Tracker application!</p>
+                <p>Click the button below to access the loan tracker interface.</p>
+                <div style="margin-top: 30px;">
+                    <a href="/loan-tracker" class="btn-primary" style="
+                        display: inline-block;
+                        background: #3b82f6;
+                        color: white;
+                        padding: 12px 24px;
+                        text-decoration: none;
+                        border-radius: 8px;
+                        font-weight: 500;
+                        transition: background 0.3s ease;
+                    " onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                        Open Loan Tracker
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Function to check health status when page loads
+        async function checkHealth() {
+            const indicator = document.getElementById('health-indicator');
+            const appStatus = document.getElementById('app-status');
+            const dbStatus = document.getElementById('db-status');
+            
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    indicator.className = 'health-indicator success';
+                    indicator.textContent = 'Healthy';
+                    
+                    appStatus.textContent = `App: ${data.status}`;
+                    dbStatus.textContent = `DB: ${data.db === 'ok' ? 'Connected' : 'Error'}`;
+                } else {
+                    throw new Error('Health check failed');
+                }
+            } catch (error) {
+                indicator.className = 'health-indicator error';
+                indicator.textContent = 'Error';
+                
+                appStatus.textContent = 'App: Error';
+                dbStatus.textContent = 'DB: Error';
+            }
+        }
+
+        // Check health when page loads
+        document.addEventListener('DOMContentLoaded', checkHealth);
+    </script>
+</body>
+</html> 
