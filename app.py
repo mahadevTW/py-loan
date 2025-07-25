@@ -19,13 +19,14 @@ def check_database_connection():
         # Parse the DATABASE_URL
         parsed = urlparse(database_url)
         
-        # Connect to PostgreSQL using pg8000
+        # Connect to PostgreSQL using pg8000 with SSL
         conn = pg8000.Connection(
             host=parsed.hostname,
             port=parsed.port or 5432,
             database=parsed.path[1:],  # Remove leading slash
             user=parsed.username,
-            password=parsed.password
+            password=parsed.password,
+            ssl_context=True  # Enable SSL/TLS
         )
         
         # Test the connection with a simple query
