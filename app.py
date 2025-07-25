@@ -648,6 +648,7 @@ def create_transaction():
         transaction_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
         today = date.today()
         
+        # Validate date - no future dates, but allow past end dates for delayed payments
         if transaction_date > today:
             return jsonify({'error': 'Transaction date cannot be in the future'}), 400
         
@@ -754,6 +755,7 @@ def update_transaction(transaction_id):
             new_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
             today = date.today()
             
+            # Validate date - no future dates, but allow past end dates for delayed payments
             if new_date > today:
                 cursor.close()
                 conn.close()

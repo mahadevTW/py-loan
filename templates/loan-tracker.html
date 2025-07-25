@@ -1573,10 +1573,12 @@
 
                 if (!file) return;
 
-                // Get date range
+                // Get date range - limit to today for active files
                 const startDate = new Date(file.fileStartDate);
-                const endDate = file.status === 'CLOSED' ? new Date(file.fileEndDate) : new Date();
                 const today = new Date();
+                const endDate = file.status === 'CLOSED' ? 
+                    new Date(file.fileEndDate) : 
+                    new Date(Math.min(today.getTime(), new Date(file.fileEndDate).getTime()));
 
                 // Create date range for transactions
                 const dateRange = [];
@@ -1703,9 +1705,9 @@
             const today = new Date().toISOString().split('T')[0];
             paymentDateEl.value = today;
 
-            // Set max date to today and min date to file start date
-            paymentDateEl.max = today;
+            // Set min date to file start date, max date to today (no future dates)
             paymentDateEl.min = currentFile.fileStartDate;
+            paymentDateEl.max = today;
 
             // Set default amount to daily installment
             paymentAmountEl.value = currentFile.installment;
@@ -1748,7 +1750,7 @@
             const today = new Date().toISOString().split('T')[0];
             const fileStartDate = currentFile.fileStartDate;
 
-            // Validate date range
+            // Validate date range - no future dates, but allow past end dates
             if (newDate <= today && newDate >= fileStartDate) {
                 dateInput.value = newDate;
                 updateDateNavigationButtons();
@@ -1796,7 +1798,7 @@
             editAmountEl.value = transaction.amount;
             editModeEl.value = transaction.mode;
 
-            // Set date constraints
+            // Set date constraints - no future dates, but allow past end dates
             const fileStartDate = currentFile.fileStartDate;
             const today = new Date().toISOString().split('T')[0];
 
