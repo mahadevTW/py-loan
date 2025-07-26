@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 import jwt
 import bcrypt
 from functools import wraps
+import logging
 
 # Load environment variables from .env file
 load_dotenv()
@@ -25,6 +26,42 @@ MAX_PRINCIPAL_AMOUNT = int(os.environ.get("MAX_PRINCIPAL_AMOUNT", 500000))
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24
+ENABLE_REQUEST_LOGGING = os.environ.get("ENABLE_REQUEST_LOGGING", "false").lower() == "true"
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Request/Response logging middleware
+@app.before_request
+def log_request():
+    """Log incoming requests when logging is enabled"""
+    if ENABLE_REQUEST_LOGGING:
+        # Log request URL and body in single line
+        request_info = f"REQUEST: {request.method} {request.path}"
+        if request.method != 'GET' and request.is_json:
+            try:
+                body = request.get_json()
+                request_info += f" | Body: {body}"
+            except:
+                request_info += " | Body: [Could not parse JSON]"
+        logger.info(request_info)
+
+@app.after_request
+def log_response(response):
+    """Log outgoing responses when logging is enabled"""
+    if ENABLE_REQUEST_LOGGING:
+        # Log response status and body in single line
+        response_info = f"RESPONSE: {response.status_code} {response.status}"
+        if response.content_type == 'application/json':
+            try:
+                response_data = response.get_json()
+                response_info += f" | Body: {response_data}"
+            except:
+                response_info += " | Body: [Could not parse JSON]"
+        logger.info(response_info)
+    
+    return response
 
 def get_db_connection():
     """Get database connection using pg8000"""
